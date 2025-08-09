@@ -6,6 +6,7 @@ import threading
 from datetime import datetime
 from tkinter import messagebox  # Для ошибок в GUI
 
+# NAVIGATOR: Конфигурация — импорт путей, параметров модели, генерации из config.py
 from config import (
     DEFAULT_MODEL_DIR,
     DEFAULT_MODEL,
@@ -24,6 +25,7 @@ except ImportError:
     )
 
 
+# NAVIGATOR: ModelHandler — основной класс: загрузка модели, генерация, история, сессии
 class ModelHandler:
     """Класс для управления моделью и диалогами"""
     
@@ -39,9 +41,10 @@ class ModelHandler:
         self.max_tokens = DEFAULT_GENERATION_PARAMS['max_tokens']
         self.top_p = DEFAULT_GENERATION_PARAMS['top_p']
         
-        # Загружаем модель
+        # NAVIGATOR: Загрузка модели — при инициализации ModelHandler
         self.load_model()
 
+    # NAVIGATOR: Загрузка модели → load_model, проверяет путь, использует Llama из llama_cpp
     def load_model(self, model_path=None):
         """Загрузка модели из указанного пути"""
         path_to_load = model_path or self.model_path
@@ -68,6 +71,7 @@ class ModelHandler:
             self.logger.error(error_msg)
             messagebox.showerror("Ошибка загрузки", error_msg)
 
+    # NAVIGATOR: Добавление в историю → add_to_history, ограничение по MAX_HISTORY_LENGTH
     def add_to_history(self, role, content):
         """Добавление сообщения в историю диалога"""
         if len(self.history) >= MAX_HISTORY_LENGTH:
@@ -79,6 +83,7 @@ class ModelHandler:
         })
         self.logger.debug(f"История ({role}): {content[:60]}...")
 
+    # NAVIGATOR: Генерация ответа → generate_response, в потоке, использует create_chat_completion
     def generate_response(self, prompt, callback):
         """Генерация ответа модели в отдельном потоке"""
         if self.model is None:
@@ -119,11 +124,13 @@ class ModelHandler:
         thread = threading.Thread(target=worker, daemon=True)
         thread.start()
 
+    # NAVIGATOR: Очистка истории → clear_history, вызывается из GUI
     def clear_history(self):
         """Очистка истории диалога"""
         self.history = []
         self.logger.info("История диалога очищена")
 
+    # NAVIGATOR: Сохранение сессии → save_session, JSON, в папку session_logs
     def save_session(self, filename=None):
         """Сохранение сессии в JSON"""
         if not filename:
@@ -150,6 +157,7 @@ class ModelHandler:
             self.logger.error(f"Ошибка при сохранении: {e}")
             messagebox.showerror("Ошибка", f"Не удалось сохранить сессию:\n{e}")
 
+    # NAVIGATOR: Загрузка сессии → load_session, восстанавливает модель, параметры, историю
     def load_session(self, filename):
         """Загрузка сессии из файла"""
         filepath = os.path.join("session_logs", filename)
@@ -171,6 +179,7 @@ class ModelHandler:
             messagebox.showerror("Ошибка", f"Не удалось загрузить сессию:\n{e}")
             return False
 
+    # NAVIGATOR: Обновление параметров → update_parameters, вызывается из GUI при изменении настроек
     def update_parameters(self, **params):
         """Обновление параметров генерации"""
         if 'temperature' in params:

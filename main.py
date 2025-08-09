@@ -1,14 +1,16 @@
+# main.py
 import sys
 import logging
 import tkinter as tk
 from logging.handlers import RotatingFileHandler
 
-# Абсолютные импорты (без точки)
+# NAVIGATOR: Импорты — config (логирование), model_handler, gui
 from config import LOG_CONFIG
 from model_handler import ModelHandler
 from gui import LlamaGUI
 
 
+# NAVIGATOR: Настройка логирования → setup_logging, использует RotatingFileHandler и console
 def setup_logging():
     """Настройка системы логирования"""
     logger = logging.getLogger("llama_gui")
@@ -37,6 +39,7 @@ def setup_logging():
     return logger
 
 
+# NAVIGATOR: Точка входа — main(), создаёт логгер, model_handler и GUI, запускает mainloop
 def main():
     logger = setup_logging()
     logger.info("=" * 50)
@@ -44,16 +47,20 @@ def main():
     logger.info(f"Python версия: {sys.version}")
 
     # Создание обработчика модели
+    # NAVIGATOR: Создание ModelHandler → передаётся в GUI
     model_handler = ModelHandler(logger)
 
     # Создание GUI
+    # NAVIGATOR: Создание GUI → LlamaGUI(root, model_handler, logger)
     root = tk.Tk()
     app = LlamaGUI(root, model_handler, logger)
 
     # Запуск основного цикла
+    # NAVIGATOR: Запуск GUI — root.mainloop()
     root.mainloop()
     logger.info("Работа приложения завершена")
 
 
 if __name__ == "__main__":
+    # NAVIGATOR: Запуск приложения — python main.py
     main()

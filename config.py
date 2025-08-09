@@ -22,3 +22,4 @@ DEFAULT_GENERATION_PARAMS = {
     'max_tokens': 512,
     'top_p': 0.9
 }
+# NAVIGATOR: тест автогенерации

@@ -9,6 +9,7 @@ from model_handler import ModelHandler
 from config import DEFAULT_MODEL_DIR
 
 
+# NAVIGATOR: GUI — основное окно: выбор модели, ввод, история, кнопки (выбрать, настройки, очистить, сохранить)
 class LlamaGUI:
     """Графический интерфейс для Llama-модели"""
     
@@ -37,9 +38,17 @@ class LlamaGUI:
 
         ttk.Label(top_frame, text="Модель:").pack(side=tk.LEFT)
         ttk.Entry(top_frame, textvariable=self.model_path_var, width=50, state="readonly").pack(side=tk.LEFT, padx=5)
+        
+        # NAVIGATOR: Кнопка — выбор модели → browse_model
         ttk.Button(top_frame, text="Выбрать", command=self.browse_model).pack(side=tk.LEFT, padx=2)
+        
+        # NAVIGATOR: Кнопка — открыть настройки → open_settings
         ttk.Button(top_frame, text="Настройки", command=self.open_settings).pack(side=tk.LEFT, padx=2)
+        
+        # NAVIGATOR: Кнопка — очистить историю диалога → clear_history
         ttk.Button(top_frame, text="Очистить", command=self.clear_history).pack(side=tk.LEFT, padx=2)
+        
+        # NAVIGATOR: Кнопка — сохранить сессию → save_session
         ttk.Button(top_frame, text="Сохранить", command=self.save_session).pack(side=tk.LEFT, padx=2)
 
         # --- Поле ввода ---
@@ -49,6 +58,8 @@ class LlamaGUI:
         ttk.Label(input_frame, text="Вы:").pack(anchor=tk.W)
         self.input_text = tk.Text(input_frame, height=4, wrap=tk.WORD)
         self.input_text.pack(fill=tk.X, pady=2)
+        
+        # NAVIGATOR: Кнопка — отправить сообщение → send_message
         ttk.Button(input_frame, text="Отправить", command=self.send_message).pack(anchor=tk.E, pady=2)
 
         # --- История диалога ---
@@ -74,6 +85,7 @@ class LlamaGUI:
         # Уже реализовано через pack в create_widgets
         pass
 
+    # NAVIGATOR: Выбор модели → через filedialog, путь из DEFAULT_MODEL_DIR
     def browse_model(self):
         """Выбор файла модели"""
         path = filedialog.askopenfilename(
@@ -85,6 +97,7 @@ class LlamaGUI:
             self.model_path_var.set(path)
             self.logger.info(f"Выбрана модель: {path}")
 
+    # NAVIGATOR: Отправка сообщения → send_message, вызывает generate_response
     def send_message(self):
         """Отправка сообщения и генерация ответа"""
         user_input = self.input_text.get("1.0", tk.END).strip()
@@ -109,6 +122,7 @@ class LlamaGUI:
 
         self.model_handler.generate_response(user_input, on_response)
 
+    # NAVIGATOR: Добавление сообщения в историю → add_message_to_history
     def add_message_to_history(self, sender, message):
         """Добавление сообщения в текстовое поле истории"""
         self.history_text.config(state=tk.NORMAL)
@@ -116,6 +130,7 @@ class LlamaGUI:
         self.history_text.config(state=tk.DISABLED)
         self.history_text.see(tk.END)
 
+    # NAVIGATOR: Очистка истории → clear_history, вызывает model_handler.clear_history()
     def clear_history(self):
         """Очистка истории диалога"""
         if messagebox.askyesno("Подтверждение", "Очистить историю диалога?"):
@@ -125,6 +140,7 @@ class LlamaGUI:
             self.history_text.config(state=tk.DISABLED)
             self.logger.info("История диалога очищена в GUI")
 
+    # NAVIGATOR: Сохранение сессии → save_session, использует filedialog и model_handler.save_session()
     def save_session(self):
         """Сохранение текущей сессии"""
         filename = filedialog.asksaveasfilename(
@@ -138,16 +154,19 @@ class LlamaGUI:
             self.model_handler.save_session(filename)
             messagebox.showinfo("Сохранение", "Сессия успешно сохранена!")
 
+    # NAVIGATOR: Открытие окна настроек → open_settings, создаёт SettingsWindow
     def open_settings(self):
         """Открытие окна настроек"""
         SettingsWindow(self.root, self.model_handler, [], self.apply_settings)
 
+    # NAVIGATOR: Применение настроек → apply_settings, передаёт параметры в model_handler
     def apply_settings(self, params):
         """Применение изменённых настроек"""
         self.model_handler.update_parameters(**params)
         self.logger.info(f"Настройки обновлены: {params}")
 
 
+# NAVIGATOR: Окно настроек → SettingsWindow: temperature, max_tokens, top_p
 class SettingsWindow:
     """Окно настроек приложения"""
     
@@ -197,6 +216,7 @@ class SettingsWindow:
         button_frame = ttk.Frame(frame)
         button_frame.grid(row=3, column=0, columnspan=3, pady=20)
 
+        # NAVIGATOR: Применить настройки → on_apply, вызывает callback
         ttk.Button(button_frame, text="Применить", command=self.on_apply).pack(side=tk.LEFT, padx=5)
         ttk.Button(button_frame, text="Отмена", command=self.window.destroy).pack(side=tk.LEFT)
 
@@ -204,6 +224,7 @@ class SettingsWindow:
         """Расположение элементов в окне настроек"""
         self.window.columnconfigure(1, weight=1)
 
+    # NAVIGATOR: Обработчик кнопки 'Применить' → on_apply, собирает параметры и вызывает callback
     def on_apply(self):
         """Обработчик кнопки 'Применить'"""
         params = {
