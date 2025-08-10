@@ -1,13 +1,22 @@
 # gui.py
 import os
+import json
 import tkinter as tk
 from tkinter import (
+<<<<<<< HEAD
     ttk, filedialog, messagebox, StringVar, DoubleVar, IntVar
 )
 from model_handler import ModelHandler
 from config import DEFAULT_MODEL_DIR
 import tkinter.font as tkfont
 import matplotlib.font_manager as fm
+=======
+    ttk, filedialog, messagebox, simpledialog
+)
+import tkinter.font as tkfont
+from model_handler import ModelHandler
+import config  # Для PARAM_INFO, PROFILES_DIR, DEFAULT_SYSTEM_PROMPT
+>>>>>>> 70b1b38 (feat(gui): добавлены профили, системный промт, улучшено копирование и шрифт)
 
 
 class LlamaGUI:
@@ -20,6 +29,7 @@ class LlamaGUI:
         self.root.geometry("900x600")
         self.root.minsize(700, 500)
 
+<<<<<<< HEAD
         # Текущий шрифт
         self.current_font = StringVar(value=self.model_handler.params.get('font', "Arial"))
 
@@ -28,13 +38,16 @@ class LlamaGUI:
         self.status_var = tk.StringVar(value="Готов")
 
         # Создаём виджеты и компонуем
+=======
+        self.model_path_var = tk.StringVar(value=self.model_handler.model_path)
+        self.status_var = tk.StringVar(value="Готов")
+
+>>>>>>> 70b1b38 (feat(gui): добавлены профили, системный промт, улучшено копирование и шрифт)
         self.create_widgets()
         self.setup_layout()
         self.apply_font()
 
     def create_widgets(self):
-        """Создание элементов интерфейса"""
-        # --- Верхняя панель ---
         top_frame = ttk.Frame(self.root)
         top_frame.pack(fill=tk.X, padx=10, pady=5)
         ttk.Label(top_frame, text="Модель:").pack(side=tk.LEFT)
@@ -44,32 +57,47 @@ class LlamaGUI:
         ttk.Button(top_frame, text="Очистить", command=self.clear_history).pack(side=tk.LEFT, padx=2)
         ttk.Button(top_frame, text="Сохранить", command=self.save_session).pack(side=tk.LEFT, padx=2)
 
-        # --- Поле ввода ---
         input_frame = ttk.Frame(self.root)
         input_frame.pack(fill=tk.X, padx=10, pady=5)
         ttk.Label(input_frame, text="Вы:").pack(anchor=tk.W)
-        self.input_text = tk.Text(input_frame, height=4, wrap=tk.WORD)
+        self.input_text = tk.Text(
+            input_frame, height=4, wrap=tk.WORD,
+            font=("TkFixedFont", 12)
+        )
         self.input_text.pack(fill=tk.X, pady=2)
         ttk.Button(input_frame, text="Отправить", command=self.send_message).pack(anchor=tk.E, pady=2)
 
-        # --- История диалога ---
         history_frame = ttk.LabelFrame(self.root, text="Диалог")
         history_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+<<<<<<< HEAD
         self.history_text = tk.Text(history_frame, wrap=tk.WORD, state=tk.DISABLED, height=15)
+=======
+        self.history_text = tk.Text(
+            history_frame, wrap=tk.WORD, state=tk.DISABLED, height=15,
+            font=("TkFixedFont", 12)
+        )
+>>>>>>> 70b1b38 (feat(gui): добавлены профили, системный промт, улучшено копирование и шрифт)
         scrollbar = ttk.Scrollbar(history_frame, orient=tk.VERTICAL, command=self.history_text.yview)
         self.history_text.configure(yscrollcommand=scrollbar.set)
         self.history_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-        # --- Статусная строка ---
+        self.history_text.bind("<Control-c>", lambda e: self.copy_selection())
+        self.history_text.bind("<Button-3>", self.show_context_menu)
+
         status_bar = ttk.Frame(self.root)
         status_bar.pack(fill=tk.X, padx=10, pady=(0, 10))
         ttk.Label(status_bar, text="Статус:").pack(side=tk.LEFT)
         ttk.Label(status_bar, textvariable=self.status_var, foreground="blue").pack(side=tk.LEFT, padx=5)
 
+        self.context_menu = tk.Menu(self.root, tearoff=0)
+        self.context_menu.add_command(label="Копировать", command=self.copy_selection)
+        self.context_menu.add_command(label="Сохранить ответ как…", command=self.save_selected_response)
+
     def setup_layout(self):
         pass
 
+<<<<<<< HEAD
     def apply_font(self):
         """Применяет выбранный шрифт ко всем текстовым виджетам"""
         font_name = self.current_font.get()
@@ -83,11 +111,12 @@ class LlamaGUI:
             self.input_text.configure(font=default_font)
             self.history_text.configure(font=default_font)
 
+=======
+>>>>>>> 70b1b38 (feat(gui): добавлены профили, системный промт, улучшено копирование и шрифт)
     def browse_model(self):
-        """Выбор файла модели"""
         path = filedialog.askopenfilename(
             title="Выберите файл модели",
-            initialdir=DEFAULT_MODEL_DIR,
+            initialdir=config.DEFAULT_MODEL_DIR,
             filetypes=[("Model files", "*.gguf *.bin"), ("All files", "*.*")]
         )
         if path:
@@ -95,7 +124,6 @@ class LlamaGUI:
             self.logger.info(f"Выбрана модель: {path}")
 
     def send_message(self):
-        """Отправка сообщения и генерация ответа"""
         user_input = self.input_text.get("1.0", tk.END).strip()
         if not user_input:
             return
@@ -112,14 +140,16 @@ class LlamaGUI:
         self.model_handler.generate_response(user_input, on_response)
 
     def add_message_to_history(self, sender, message):
-        """Добавление сообщения в текстовое поле истории"""
         self.history_text.config(state=tk.NORMAL)
         self.history_text.insert(tk.END, f"{sender}: {message}\n")
+<<<<<<< HEAD
+=======
+        self.history_text.tag_add(sender.lower(), "end-2l", "end-1l")
+>>>>>>> 70b1b38 (feat(gui): добавлены профили, системный промт, улучшено копирование и шрифт)
         self.history_text.config(state=tk.DISABLED)
         self.history_text.see(tk.END)
 
     def clear_history(self):
-        """Очистка истории диалога"""
         if messagebox.askyesno("Подтверждение", "Очистить историю диалога?"):
             self.model_handler.clear_history()
             self.history_text.config(state=tk.NORMAL)
@@ -128,11 +158,14 @@ class LlamaGUI:
             self.logger.info("История диалога очищена в GUI")
 
     def save_session(self):
-        """Сохранение текущей сессии"""
         filename = filedialog.asksaveasfilename(
             title="Сохранить сессию",
             initialdir="session_logs",
+<<<<<<< HEAD
             initialfile=f"session_{self.root.winfo_name()}",
+=======
+            initialfile="session.json",
+>>>>>>> 70b1b38 (feat(gui): добавлены профили, системный промт, улучшено копирование и шрифт)
             filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
             defaultextension=".json"
         )
@@ -141,29 +174,86 @@ class LlamaGUI:
             messagebox.showinfo("Сохранение", "Сессия успешно сохранена!")
 
     def open_settings(self):
+<<<<<<< HEAD
         """Открытие окна настроек"""
         SettingsWindow(self.root, self.model_handler, self.current_font.get(), self.apply_settings_and_font)
 
     def apply_settings_and_font(self, params, font_name):
         """Применение настроек и шрифта"""
+=======
+        SettingsWindow(self.root, self.model_handler, self.apply_settings)
+
+    def apply_settings(self, params):
+>>>>>>> 70b1b38 (feat(gui): добавлены профили, системный промт, улучшено копирование и шрифт)
         self.model_handler.update_parameters(**params)
         self.current_font.set(font_name)
         self.apply_font()
         self.logger.info(f"Настройки и шрифт обновлены: {params}, шрифт: {font_name}")
 
+    def copy_selection(self):
+        try:
+            selected = self.history_text.get(tk.SEL_FIRST, tk.SEL_LAST)
+            self.root.clipboard_clear()
+            self.root.clipboard_append(selected)
+        except tk.TclError:
+            pass
+
+    def show_context_menu(self, event):
+        try:
+            index = self.history_text.index(f"@{event.x},{event.y}")
+            tags = self.history_text.tag_names(index)
+            if "assistant" in tags:
+                self.context_menu.entryconfig("Сохранить ответ как…", state="normal")
+            else:
+                self.context_menu.entryconfig("Сохранить ответ как…", state="disabled")
+            self.context_menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            self.context_menu.grab_release()
+
+    def save_selected_response(self):
+        try:
+            full_text = self.history_text.get("1.0", tk.END)
+            lines = [line.strip() for line in full_text.split('\n') if line.strip()]
+            assistant_lines = [line for line in lines if line.startswith("Ассистент: ")]
+            if not assistant_lines:
+                messagebox.showwarning("Сохранение", "Нет ответа ассистента для сохранения.")
+                return
+            last_response = assistant_lines[-1]
+            content = last_response[len("Ассистент: "):].strip()
+            filename = filedialog.asksaveasfilename(
+                title="Сохранить ответ",
+                defaultextension=".txt",
+                filetypes=[("Text files", "*.txt"), ("Markdown", "*.md"), ("All files", "*.*")]
+            )
+            if filename:
+                with open(filename, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                messagebox.showinfo("Сохранение", f"Ответ сохранён в:\n{filename}")
+        except Exception as e:
+            messagebox.showerror("Ошибка", f"Не удалось сохранить ответ:\n{str(e)}")
+
 
 class SettingsWindow:
+<<<<<<< HEAD
     """Окно настроек приложения"""
     def __init__(self, parent, model_handler, current_font, apply_callback):
         self.window = tk.Toplevel(parent)
         self.window.title("Настройки")
         self.window.geometry("600x650")
+=======
+    """Окно настроек с профилями, валидацией и подсказками"""
+    def __init__(self, parent, model_handler, apply_callback):
+        self.window = tk.Toplevel(parent)
+        self.window.title("Настройки")
+        self.window.geometry("600x550")
+>>>>>>> 70b1b38 (feat(gui): добавлены профили, системный промт, улучшено копирование и шрифт)
         self.window.resizable(True, True)
         self.window.transient(parent)
         self.window.grab_set()
 
         self.model_handler = model_handler
         self.apply_callback = apply_callback
+<<<<<<< HEAD
         self.current_font = current_font
 
         # Получаем системные шрифты
@@ -173,6 +263,10 @@ class SettingsWindow:
             font_names = ["Arial", "DejaVu Sans", "Liberation Sans", "Times New Roman", "Courier New"]
         self.font_var = StringVar(value=current_font)
         self.font_list = font_names
+=======
+        self.params_entries = {}
+        self.profile_var = tk.StringVar()
+>>>>>>> 70b1b38 (feat(gui): добавлены профили, системный промт, улучшено копирование и шрифт)
 
         # Подсказки
         self.tooltips = {
@@ -222,9 +316,11 @@ class SettingsWindow:
 
         self.entries = {}
         self.create_widgets()
+        self.load_profiles()
         self.setup_layout()
 
     def create_widgets(self):
+<<<<<<< HEAD
         """Создание элементов интерфейса настроек"""
         main_frame = ttk.Frame(self.window)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
@@ -288,9 +384,60 @@ class SettingsWindow:
         # --- Кнопки ---
         button_frame = ttk.Frame(scroll_frame)
         button_frame.grid(row=row, column=0, columnspan=3, pady=20)
-        ttk.Button(button_frame, text="Применить", command=self.on_apply).pack(side=tk.LEFT, padx=5)
-        ttk.Button(button_frame, text="Отмена", command=self.window.destroy).pack(side=tk.LEFT)
+=======
+        notebook = ttk.Notebook(self.window)
+        notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
+        basic_frame = ttk.Frame(notebook)
+        notebook.add(basic_frame, text="Основные")
+
+        ttk.Label(basic_frame, text="Системный промт:").grid(row=0, column=0, sticky=tk.W, pady=5, padx=5)
+        self.system_prompt_text = tk.Text(basic_frame, height=4, width=50, wrap=tk.WORD)
+        self.system_prompt_text.grid(row=0, column=1, columnspan=2, pady=5, padx=5)
+        self.add_tooltip(self.system_prompt_text, config.PARAM_INFO['system_prompt']['description'])
+
+        row = 1
+        for param in ['temperature', 'max_tokens', 'top_p', 'frequency_penalty', 'presence_penalty', 'repeat_penalty']:
+            info = config.PARAM_INFO[param]
+            ttk.Label(basic_frame, text=info['label'] + ":").grid(row=row, column=0, sticky=tk.W, pady=2, padx=5)
+            entry = ttk.Entry(basic_frame, width=10)
+            entry.grid(row=row, column=1, pady=2, padx=5)
+            self.params_entries[param] = entry
+            self.add_tooltip(entry, info['description'])
+            row += 1
+
+        advanced_frame = ttk.Frame(notebook)
+        notebook.add(advanced_frame, text="Дополнительно")
+
+        row = 0
+        for param in config.PARAM_INFO:
+            if param in ['temperature', 'max_tokens', 'top_p', 'frequency_penalty', 'presence_penalty', 'repeat_penalty', 'system_prompt']:
+                continue
+            info = config.PARAM_INFO[param]
+            ttk.Label(advanced_frame, text=info['label'] + ":").grid(row=row, column=0, sticky=tk.W, pady=2, padx=5)
+            entry = ttk.Entry(advanced_frame, width=15)
+            entry.grid(row=row, column=1, pady=2, padx=5)
+            self.params_entries[param] = entry
+            self.add_tooltip(entry, info['description'])
+            row += 1
+
+        profile_frame = ttk.LabelFrame(self.window, text="Профили")
+        profile_frame.pack(fill=tk.X, padx=10, pady=5)
+        ttk.Label(profile_frame, text="Профиль:").pack(side=tk.LEFT, padx=5)
+        self.profile_combo = ttk.Combobox(profile_frame, textvariable=self.profile_var, state="readonly")
+        self.profile_combo.pack(side=tk.LEFT, padx=5, fill=tk.X, expand=True)
+        self.profile_combo.bind("<<ComboboxSelected>>", self.load_profile)
+        ttk.Button(profile_frame, text="Загрузить", command=self.load_profile).pack(side=tk.LEFT, padx=2)
+        ttk.Button(profile_frame, text="Сохранить", command=self.save_profile).pack(side=tk.LEFT, padx=2)
+        ttk.Button(profile_frame, text="Удалить", command=self.delete_profile).pack(side=tk.LEFT, padx=2)
+
+        button_frame = ttk.Frame(self.window)
+        button_frame.pack(pady=10)
+>>>>>>> 70b1b38 (feat(gui): добавлены профили, системный промт, улучшено копирование и шрифт)
+        ttk.Button(button_frame, text="Применить", command=self.on_apply).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Отмена", command=self.window.destroy).pack(side=tk.LEFT, padx=5)
+
+<<<<<<< HEAD
         scroll_frame.columnconfigure(1, weight=1)
 
     def _add_tooltip(self, parent, row, key):
@@ -353,4 +500,143 @@ class SettingsWindow:
         params['font'] = self.font_var.get()
 
         self.apply_callback(params, self.font_var.get())
+=======
+    def setup_layout(self):
+        self.window.columnconfigure(0, weight=1)
+
+    def add_tooltip(self, widget, text):
+        def on_enter(e):
+            widget.tooltip = tk.Toplevel(widget)
+            widget.tooltip.wm_overrideredirect(True)
+            x, y, _, _ = widget.bbox("insert")
+            x += widget.winfo_rootx() + 25
+            y += widget.winfo_rooty() + 25
+            widget.tooltip.wm_geometry(f"+{x}+{y}")
+            label = tk.Label(
+                widget.tooltip, text=text, background="lightyellow",
+                relief="solid", borderwidth=1, font=("Segoe UI", 9)
+            )
+            label.pack()
+        def on_leave(e):
+            if hasattr(widget, 'tooltip'):
+                widget.tooltip.destroy()
+                del widget.tooltip
+        widget.bind("<Enter>", on_enter)
+        widget.bind("<Leave>", on_leave)
+
+    def load_profiles(self):
+        profiles = []
+        if os.path.exists(config.PROFILES_DIR):
+            profiles = [f[:-5] for f in os.listdir(config.PROFILES_DIR) if f.endswith(".json")]
+        self.profile_combo['values'] = profiles
+
+    def load_profile(self, event=None):
+        name = self.profile_var.get()
+        if not name:
+            return
+        path = os.path.join(config.PROFILES_DIR, f"{name}.json")
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            for param, entry in self.params_entries.items():
+                value = data.get(param)
+                if value is not None:
+                    entry.delete(0, tk.END)
+                    entry.insert(0, str(value))
+            if 'system_prompt' in data:
+                self.system_prompt_text.delete("1.0", tk.END)
+                self.system_prompt_text.insert("1.0", data['system_prompt'])
+        except Exception as e:
+            messagebox.showerror("Ошибка", f"Не удалось загрузить профиль:\n{str(e)}")
+
+    def save_profile(self):
+        name = self.profile_var.get()
+        if not name:
+            name = simpledialog.askstring("Имя профиля", "Введите имя профиля:")
+            if not name:
+                return
+            self.profile_var.set(name)
+        path = os.path.join(config.PROFILES_DIR, f"{name}.json")
+        data = {}
+        for param, entry in self.params_entries.items():
+            value = entry.get().strip()
+            if not value:
+                continue
+            info = config.PARAM_INFO[param]
+            try:
+                if info['type'] == bool:
+                    val = value.lower() in ('true', '1', 'yes', 'on')
+                elif info['type'] == float:
+                    val = float(value)
+                    if info.get('min') is not None and val < info['min']:
+                        raise ValueError()
+                    if info.get('max') is not None and val > info['max']:
+                        raise ValueError()
+                elif info['type'] == int:
+                    val = int(value)
+                    if info.get('min') is not None and val < info['min']:
+                        raise ValueError()
+                    if info.get('max') is not None and val > info['max']:
+                        raise ValueError()
+                else:
+                    val = value
+                data[param] = val
+            except Exception:
+                messagebox.showerror("Ошибка", f"Неверное значение для '{info['label']}'")
+                return
+        system_prompt = self.system_prompt_text.get("1.0", tk.END).strip()
+        data['system_prompt'] = system_prompt
+        try:
+            with open(path, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            self.load_profiles()
+            messagebox.showinfo("Профиль", "Профиль сохранён!")
+        except Exception as e:
+            messagebox.showerror("Ошибка", f"Не удалось сохранить профиль:\n{str(e)}")
+
+    def delete_profile(self):
+        name = self.profile_var.get()
+        if not name:
+            return
+        if messagebox.askyesno("Удалить", f"Удалить профиль '{name}'?"):
+            path = os.path.join(config.PROFILES_DIR, f"{name}.json")
+            try:
+                os.remove(path)
+                self.profile_var.set("")
+                self.load_profiles()
+            except Exception as e:
+                messagebox.showerror("Ошибка", f"Не удалось удалить:\n{str(e)}")
+
+    def on_apply(self):
+        params = {}
+        for param, entry in self.params_entries.items():
+            value = entry.get().strip()
+            if not value:
+                continue
+            info = config.PARAM_INFO[param]
+            try:
+                if info['type'] == bool:
+                    val = value.lower() in ('true', '1', 'yes', 'on')
+                elif info['type'] == float:
+                    val = float(value)
+                    if info.get('min') is not None and val < info['min']:
+                        raise ValueError()
+                    if info.get('max') is not None and val > info['max']:
+                        raise ValueError()
+                elif info['type'] == int:
+                    val = int(value)
+                    if info.get('min') is not None and val < info['min']:
+                        raise ValueError()
+                    if info.get('max') is not None and val > info['max']:
+                        raise ValueError()
+                else:
+                    val = value
+                params[param] = val
+            except Exception:
+                messagebox.showerror("Ошибка", f"Неверное значение для '{info['label']}'")
+                return
+        system_prompt = self.system_prompt_text.get("1.0", tk.END).strip()
+        params['system_prompt'] = system_prompt
+        self.apply_callback(params)
+>>>>>>> 70b1b38 (feat(gui): добавлены профили, системный промт, улучшено копирование и шрифт)
         self.window.destroy()
